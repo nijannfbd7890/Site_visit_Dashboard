@@ -1,0 +1,589 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Visit Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --accent: #f43f5e;
+            --background: #0f172a;
+            --surface: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-title h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title p {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Slicers Section */
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        select,
+        input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            color: var(--text);
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.9rem;
+        }
+
+        select:hover,
+        input:hover {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        select:focus,
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: var(--text);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+        }
+
+        .stat-card.success .stat-value {
+            color: #10b981;
+        }
+
+        .stat-card.failed .stat-value {
+            color: #f43f5e;
+        }
+
+        .stat-card.total .stat-value {
+            color: var(--primary);
+        }
+
+        /* Charts Layout */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        /* Table Section */
+        .table-container {
+            background: var(--surface);
+            border-radius: 1.5rem;
+            border: 1px solid var(--glass-border);
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            font-size: 0.9rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .badge-fail {
+            background: rgba(244, 63, 94, 0.1);
+            color: #f43f5e;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header-title h1 {
+                font-size: 1.75rem;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            th,
+            td {
+                padding: 0.75rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-title">
+                <h1>Site Visit Dashboard</h1>
+                <p id="dashboard-subtitle">Real-time performance metrics tracking</p>
+            </div>
+            <div class="header-actions">
+                <!-- Additional controls could go here -->
+            </div>
+        </header>
+
+        <section class="controls">
+            <div class="control-group">
+                <label for="team-filter">Team Name</label>
+                <select id="team-filter">
+                    <option value="all">All Teams</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="year-filter">Performance Year</label>
+                <select id="year-filter">
+                    <option value="all">All Years</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="pos-filter">Position for TELE MARKETING STAFF NAME</label>
+                <select id="pos-filter">
+                    <option value="all">All Positions</option>
+                </select>
+            </div>
+
+        </section>
+
+        <section class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-value" id="stat-total-visits">0</div>
+                <div class="stat-label">Total Site Visits</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-value" id="stat-success">0</div>
+                <div class="stat-label">Successful Visits</div>
+            </div>
+            <div class="stat-card failed">
+                <div class="stat-value" id="stat-failed">0</div>
+                <div class="stat-label">Unsuccessful Visits</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-ratio">0%</div>
+                <div class="stat-label">Success Ratio</div>
+            </div>
+        </section>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Visit Distribution by Team</div>
+                </div>
+                <div id="team-bar-chart"></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Success vs Failure</div>
+                </div>
+                <div id="status-pie-chart"></div>
+            </div>
+        </div>
+
+        <div class="chart-card" style="margin-bottom: 1.5rem;">
+            <div class="chart-header">
+                <div class="chart-title">Yearly Trend</div>
+            </div>
+            <div id="trend-line-chart"></div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Team Name</th>
+                        <th>Success</th>
+                        <th>Unsuccess</th>
+                        <th>Total</th>
+                        <th>Ratio</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table-body">
+                    <!-- Data will be injected here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Data processing will happen here
+        const performanceDataFull = [{ "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.A.Muthukumaran Sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Senthil Sir", "v2024": { "fail": 2, "success": 1 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.B.Preethi Madam", "v2025": { "fail": 0, "success": 1 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.K.Thamizharasan Sir", "v2025": { "fail": 2, "success": 0 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 0, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.Prabhakaran Sir", "v2025": { "fail": 4, "success": 2 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 14, "success": 6 }, "pos": "BOD" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.J.Ayyappan sir", "v2025": { "fail": 45, "success": 14 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 18, "success": 3 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.B.Chella Meena Madam", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Sankar sir", "v2024": { "fail": 7, "success": 2 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.Senthil Sir", "v2025": { "fail": 9, "success": 2 }, "team": "Mr.Senthil Sir", "v2024": { "fail": 11, "success": 4 }, "pos": "BOD" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.E.Sriram kumar Sir", "v2025": { "fail": 44, "success": 14 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.M.Manikandan sir", "v2025": { "fail": 11, "success": 0 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.S.Jayamani Sir", "v2025": { "fail": 1, "success": 0 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 6, "success": 0 }, "staff": "Ms.P.Parameshwari Madam", "v2025": { "fail": 3, "success": 1 }, "team": "Mr.AK.Kumaresan sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.G.Manikandan Sir", "v2025": { "fail": 0, "success": 1 }, "team": "Mr.Rajiv Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.S.Deivanayaki Madam", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Rajiv sir", "v2024": { "fail": 1, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 8, "success": 1 }, "staff": "Ms.C.Keerthana Madam", "v2025": { "fail": 56, "success": 13 }, "team": "Mr.Ranjith Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Telecaller" }, { "v2026": { "fail": 1, "success": 0 }, "staff": "Mr.K.Ayyappan sir", "v2025": { "fail": 3, "success": 0 }, "team": "Mr.Sankar sir", "v2024": { "fail": 2, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 1, "success": 0 }, "staff": "Mr.K.Ayyappan sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 6, "success": 0 }, "staff": "Mrs.S.Keerthana Madam", "v2025": { "fail": 9, "success": 0 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Telecaller" }, { "v2026": { "fail": 15, "success": 0 }, "staff": "Ms.S.Meera sri Madam", "v2025": { "fail": 161, "success": 21 }, "team": "Mr.Senthil Sir", "v2024": { "fail": 111, "success": 36 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.S.Srikanth Sir", "v2025": { "fail": 0, "success": 2 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 7, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.S.Sasikala Madam", "v2025": { "fail": 20, "success": 2 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 81, "success": 13 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.J.Ananda raj sir", "v2025": { "fail": 12, "success": 2 }, "team": "Mr.Ranjith Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 4, "success": 0 }, "staff": "Mr.S.Karthi Sir", "v2025": { "fail": 1, "success": 1 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.B.Jayalakshmi Madam", "v2025": { "fail": 48, "success": 9 }, "team": "Mr.Ashok sir", "v2024": { "fail": 32, "success": 2 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 4, "success": 1 }, "staff": "Mr.A.Sakthimurugan sir", "v2025": { "fail": 18, "success": 2 }, "team": "Mr.Rajiv Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.M.Arul Selvi Madam", "v2025": { "fail": 45, "success": 10 }, "team": "Mr.Rajiv Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 26, "success": 1 }, "staff": "Ms.P.Bhavani Madam", "v2025": { "fail": 68, "success": 6 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Telecaller" }, { "v2026": { "fail": 7, "success": 1 }, "staff": "Mrs.R.Gowthamarani Madam", "v2025": { "fail": 101, "success": 23 }, "team": "Mr.Senthil Sir", "v2024": { "fail": 3, "success": 0 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.G.Megaraja sir", "v2025": { "fail": 1, "success": 0 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Old Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.R.Revathi Madam", "v2025": { "fail": 2, "success": 1 }, "team": "Mr.Ranjith Sir", "v2024": { "fail": 2, "success": 2 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 1, "success": 0 }, "staff": "Mr.G.Muthupandi Raja  sir", "v2025": { "fail": 80, "success": 17 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 48, "success": 5 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 8, "success": 5 }, "staff": "Mrs.J.Pavithra Madam", "v2025": { "fail": 39, "success": 7 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 0, "success": 0 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.R.Radha Krishnan sir", "v2025": { "fail": 1, "success": 1 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 12, "success": 0 }, "staff": "Mr.Gopi sir", "v2025": { "fail": 141, "success": 30 }, "team": "Mr.Gopi sir", "v2024": { "fail": 70, "success": 24 }, "pos": "BOD" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.Ashok sir", "v2025": { "fail": 2, "success": 3 }, "team": "Mr.Ashok sir", "v2024": { "fail": 3, "success": 6 }, "pos": "BOD" }, { "v2026": { "fail": 12, "success": 0 }, "staff": "Mr.E.Praveen sir", "v2025": { "fail": 61, "success": 16 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 7, "success": 2 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.A.Kaviyarasu Sir", "v2025": { "fail": 8, "success": 0 }, "team": "Mr.Senthil Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.B.Preethi Madam", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Gopi sir", "v2024": { "fail": 14, "success": 4 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.Latha Madam", "v2025": { "fail": 4, "success": 0 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 13, "success": 3 }, "staff": "Mr.M.Jayasuriya sir", "v2025": { "fail": 86, "success": 27 }, "team": "Mr.Sankar sir", "v2024": { "fail": 64, "success": 16 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 3, "success": 0 }, "staff": "Mr.G.Nandhakumar Sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Rajiv Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 3, "success": 0 }, "staff": "Mr.N.Parthiban Sir", "v2025": { "fail": 52, "success": 13 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 13, "success": 4 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 2, "success": 0 }, "staff": "Mr.B.Prakash Sir", "v2025": { "fail": 24, "success": 7 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 12, "success": 2 }, "pos": "F.W" }, { "v2026": { "fail": 2, "success": 0 }, "staff": "Mr.A.Madhavan sir", "v2025": { "fail": 12, "success": 2 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 2, "success": 1 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.S.Kalaimathi Madam", "v2025": { "fail": 8, "success": 2 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 51, "success": 8 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.T.Saravanan Sir", "v2025": { "fail": 1, "success": 0 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.P.Santhamoorthi sir", "v2025": { "fail": 14, "success": 4 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 95, "success": 21 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 4, "success": 1 }, "staff": "Mr.S.Govindan Sir", "v2025": { "fail": 47, "success": 16 }, "team": "Mr.Rajiv Sir", "v2024": { "fail": 35, "success": 14 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 1, "success": 1 }, "staff": "Mr.J.Clement Antony Raj  Sir", "v2025": { "fail": 25, "success": 4 }, "team": "Mr.Ashok sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.S.Selvaraj sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.SelvaKumar Sir", "v2024": { "fail": 1, "success": 1 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.G.Balaji  sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 21, "success": 7 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 1, "success": 0 }, "staff": "Ms.S.Thirushna Madam", "v2025": { "fail": 10, "success": 0 }, "team": "Mr.Ashok sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.V.Ramya Madam", "v2025": { "fail": 2, "success": 1 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 22, "success": 1 }, "staff": "Mrs.R.Gomathi Madam", "v2025": { "fail": 76, "success": 24 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 93, "success": 42 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.Logeshwaran sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Sankar sir", "v2024": { "fail": 3, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 3, "success": 1 }, "staff": "Mr.S.Karthikeyan sir", "v2025": { "fail": 110, "success": 19 }, "team": "Mr.Ashok sir", "v2024": { "fail": 111, "success": 19 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 15, "success": 1 }, "staff": "Mrs.D.Sathya Madam", "v2025": { "fail": 40, "success": 7 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.M.Vishupriya Madam", "v2025": { "fail": 1, "success": 0 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 0, "success": 0 }, "pos": "Old Staff" }, { "v2026": { "fail": 1, "success": 0 }, "staff": "Mr.M.Thirunavukkarasu Sir", "v2025": { "fail": 14, "success": 2 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 1, "success": 3 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.C.Anand Maria Joseph sir", "v2025": { "fail": 16, "success": 2 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.B.Parthiban sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Rajiv Sir", "v2024": { "fail": 3, "success": 3 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.M.Palanivel Sir", "v2025": { "fail": 13, "success": 4 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.A.Iyyappan Sir", "v2025": { "fail": 0, "success": 1 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.J.Arul sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Rajiv Sir", "v2024": { "fail": 5, "success": 1 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.S.Karthikeyan sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Gopi sir", "v2024": { "fail": 10, "success": 2 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 9, "success": 1 }, "staff": "Mr.E.Mugilvannan sir", "v2025": { "fail": 27, "success": 2 }, "team": "Mr.AK.Kumaresan sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 23, "success": 1 }, "staff": "Mr.K.Gowtham Sir", "v2025": { "fail": 62, "success": 5 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.Parameshwari Madam", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Ranjith sir", "v2024": { "fail": 2, "success": 1 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.Selvakumar Sir", "v2025": { "fail": 14, "success": 10 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 3, "success": 5 }, "pos": "BOD" }, { "v2026": { "fail": 1, "success": 1 }, "staff": "Mr.S.Manikandan sir", "v2025": { "fail": 36, "success": 14 }, "team": "Mr.Rajiv Sir", "v2024": { "fail": 58, "success": 27 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.G.Jayanthi Madam", "v2025": { "fail": 27, "success": 7 }, "team": "Mr.Rajiv Sir", "v2024": { "fail": 1, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 14, "success": 1 }, "staff": "Ms.S.Sandhiya Madam", "v2025": { "fail": 117, "success": 30 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 101, "success": 16 }, "pos": "Telecaller" }, { "v2026": { "fail": 7, "success": 1 }, "staff": "Mrs.D.Srividhiya Madam", "v2025": { "fail": 83, "success": 16 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 80, "success": 11 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.M.Indhumathi Madam", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 26, "success": 4 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 9, "success": 0 }, "staff": "Mr.A.Sugunesh sir", "v2025": { "fail": 75, "success": 27 }, "team": "Mr.Ranjith sir", "v2024": { "fail": 106, "success": 32 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.K.Chithra Madam", "v2025": { "fail": 44, "success": 9 }, "team": "Mr.Thangadurai sir", "v2024": { "fail": 118, "success": 34 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 3, "success": 0 }, "staff": "Mr.A.Prabhu sir", "v2025": { "fail": 20, "success": 1 }, "team": "Mr.Senthil Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 3, "success": 1 }, "staff": "Mr.A.Rajkumar sir", "v2025": { "fail": 70, "success": 26 }, "team": "Mr.Ashok sir", "v2024": { "fail": 80, "success": 16 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 3, "success": 0 }, "staff": "Mr.P.B.Anthony Raj sir", "v2025": { "fail": 9, "success": 1 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 0, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 2, "success": 0 }, "staff": "Mr.AK.Kumaresan sir", "v2025": { "fail": 76, "success": 29 }, "team": "Mr.AK.Kumaresan sir", "v2024": { "fail": 109, "success": 41 }, "pos": "BOD" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.R. Priyadharshini Madam", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Ashok sir", "v2024": { "fail": 1, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.S.Arockia Jegadeesan Sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Ranjith sir", "v2024": { "fail": 38, "success": 7 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 12, "success": 0 }, "staff": "Mrs.P.Ramya Madam", "v2025": { "fail": 50, "success": 15 }, "team": "Mr.AK.Kumaresan sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Telecaller" }, { "v2026": { "fail": 4, "success": 1 }, "staff": "Mr.K.Prakash sir", "v2025": { "fail": 47, "success": 13 }, "team": "Mr.Thangadurai sir", "v2024": { "fail": 61, "success": 12 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.P.Suresh sir", "v2025": { "fail": 3, "success": 0 }, "team": "Mr.AK.Kumaresan sir", "v2024": { "fail": 0, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.R.Ezhumalai Sir", "v2025": { "fail": 0, "success": 1 }, "team": "Mr.Ranjith sir", "v2024": { "fail": 11, "success": 3 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs. S. Revathi Madam", "v2025": { "fail": 2, "success": 1 }, "team": "Mr.Ranjith Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 2, "success": 0 }, "staff": "Mr.R.Vignesh sir", "v2025": { "fail": 14, "success": 9 }, "team": "Mr.Ashok sir", "v2024": { "fail": 0, "success": 0 }, "pos": "F.w" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.D.Preethi Madam", "v2025": { "fail": 3, "success": 1 }, "team": "Mr.AK.Kumaresan sir", "v2024": { "fail": 6, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.Abdul sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 1, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 6, "success": 1 }, "staff": "Mr.A.Arun sir", "v2025": { "fail": 75, "success": 27 }, "team": "Mr.Senthil Sir", "v2024": { "fail": 69, "success": 21 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.M.Poovarasi Madam", "v2025": { "fail": 41, "success": 5 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 24, "success": 1 }, "staff": "Mrs.Latha Madam", "v2025": { "fail": 168, "success": 43 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 153, "success": 41 }, "pos": "BOD" }, { "v2026": { "fail": 14, "success": 1 }, "staff": "Mrs.B.Preethi Madam", "v2025": { "fail": 89, "success": 45 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 131, "success": 50 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.G.Pavithra Madam", "v2025": { "fail": 3, "success": 0 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.A.G.Vinayagam Sir", "v2025": { "fail": 5, "success": 2 }, "team": "Mr.Senthil Sir", "v2024": { "fail": 30, "success": 3 }, "pos": "F.W" }, { "v2026": { "fail": 1, "success": 0 }, "staff": "Mr.P.Govinthan Sir", "v2025": { "fail": 3, "success": 1 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.B.Ajithkumar sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Sankar sir", "v2024": { "fail": 3, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 3, "success": 0 }, "staff": "Mr.R.Sathish Kumar Sir", "v2025": { "fail": 28, "success": 0 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 1, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 5, "success": 0 }, "staff": "Mr.Ayyappan sir", "v2025": { "fail": 12, "success": 4 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 14, "success": 7 }, "pos": "BOD" }, { "v2026": { "fail": 3, "success": 0 }, "staff": "Mr.Thangadurai sir", "v2025": { "fail": 5, "success": 1 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 2, "success": 6 }, "pos": "BOD" }, { "v2026": { "fail": 3, "success": 0 }, "staff": "Mr.A.Kannadhasan sir", "v2025": { "fail": 36, "success": 8 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 28, "success": 15 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 6, "success": 0 }, "staff": "Mr.J.Ajith Kumar sir", "v2025": { "fail": 84, "success": 17 }, "team": "Mr.Ashok sir", "v2024": { "fail": 74, "success": 20 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 3, "success": 0 }, "staff": "Mr.Sankar sir", "v2025": { "fail": 2, "success": 2 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 28, "success": 10 }, "pos": "BOD" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.C.Selvaraj Sir", "v2025": { "fail": 11, "success": 0 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 3, "success": 1 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 10, "success": 3 }, "staff": "Mr.S.Selvaraj sir", "v2025": { "fail": 72, "success": 37 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 60, "success": 26 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.G.Mohandoss Sir", "v2025": { "fail": 1, "success": 0 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Old Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.R.Janakiraman Sir", "v2025": { "fail": 2, "success": 0 }, "team": "Mr.Ranjith Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.P.Ramesh sir", "v2025": { "fail": 73, "success": 20 }, "team": "Mr.Ranjith sir", "v2024": { "fail": 90, "success": 28 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.P.Subhashini Madam", "v2025": { "fail": 1, "success": 0 }, "team": "Mr.Senthil Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.J.Arivazhagan sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Gopi sir", "v2024": { "fail": 11, "success": 2 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.K.Thamizharasan Sir", "v2025": { "fail": 0, "success": 1 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 6, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 7, "success": 3 }, "staff": "Mr.A.Rajadurai sir", "v2025": { "fail": 79, "success": 31 }, "team": "Mr.Ranjith sir", "v2024": { "fail": 91, "success": 25 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 2, "success": 1 }, "staff": "Mr.A.Praveen kumar sir", "v2025": { "fail": 24, "success": 20 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 48, "success": 31 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 7, "success": 1 }, "staff": "Mr.N.Sakthivel Sir", "v2025": { "fail": 24, "success": 2 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.M.Rajesh Sir", "v2025": { "fail": 12, "success": 0 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 1, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 1, "success": 0 }, "staff": "Mr.J.Tamilarasan Sir", "v2025": { "fail": 24, "success": 2 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 7, "success": 0 }, "staff": "Mr.A.Arockiya Prabakaran Sir", "v2025": { "fail": 48, "success": 8 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 4, "success": 1 }, "staff": "Ms.M.Kayalvizhi Madam", "v2025": { "fail": 18, "success": 2 }, "team": "Mr.Rajiv Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.M.Kalaimathi Madam", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Ranjith sir", "v2024": { "fail": 29, "success": 8 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 8, "success": 0 }, "staff": "Mr.P.Lakshmanan Sir", "v2025": { "fail": 69, "success": 21 }, "team": "Mr.Ranjith Sir", "v2024": { "fail": 7, "success": 10 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.Surya Madam", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Ashok sir", "v2024": { "fail": 5, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.E.Ilayaraja Sir", "v2025": { "fail": 4, "success": 1 }, "team": "Mr.Ranjith sir", "v2024": { "fail": 27, "success": 4 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.Kaviya Madam", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Ranjith sir", "v2024": { "fail": 2, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.P.Govinthan Sir", "v2025": { "fail": 6, "success": 1 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 4, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 5, "success": 2 }, "staff": "Mr.M.Ezhumalai Sir", "v2025": { "fail": 10, "success": 4 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 7, "success": 7 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.R.Shalini Madam", "v2025": { "fail": 1, "success": 0 }, "team": "Mr.Ashok sir", "v2024": { "fail": 1, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 8, "success": 1 }, "staff": "Mr.S.Janarthanam Sir", "v2025": { "fail": 44, "success": 9 }, "team": "Mr.Ranjith Sir", "v2024": { "fail": 9, "success": 2 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 2, "success": 0 }, "staff": "Mr.Rajiv sir", "v2025": { "fail": 9, "success": 8 }, "team": "Mr.Rajiv Sir", "v2024": { "fail": 5, "success": 10 }, "pos": "BOD" }, { "v2026": { "fail": 1, "success": 0 }, "staff": "Mr.Suriya Sir", "v2025": { "fail": 3, "success": 1 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 23, "success": 9 }, "pos": "BOD" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.S.Kalaimathi Madam", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.SelvaKumar Sir", "v2024": { "fail": 2, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.R.Jhansi Reena Madam", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 48, "success": 2 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.M.Siva Sir", "v2025": { "fail": 4, "success": 0 }, "team": "Mr.Rajiv Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.A.Praveen kumar sir", "v2025": { "fail": 1, "success": 0 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 1, "success": 1 }, "staff": "Mr.C.Vijayan sir", "v2025": { "fail": 18, "success": 10 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 33, "success": 11 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 21, "success": 1 }, "staff": "Mrs.T.Prabhavathi Madam", "v2025": { "fail": 146, "success": 37 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 152, "success": 37 }, "pos": "Telecaller" }, { "v2026": { "fail": 12, "success": 0 }, "staff": "Mr.M.Chinnadurai Sir", "v2025": { "fail": 37, "success": 7 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 1, "success": 0 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 7, "success": 1 }, "staff": "Mr.R.Shawn michael sir", "v2025": { "fail": 20, "success": 5 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 11, "success": 11 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 4, "success": 0 }, "staff": "Mr.P.Vignesh Sir", "v2025": { "fail": 10, "success": 9 }, "team": "Mr.Senthil Sir", "v2024": { "fail": 2, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.L.Sathish Sir", "v2025": { "fail": 0, "success": 1 }, "team": "Mr.Senthil sir", "v2024": { "fail": 6, "success": 2 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.G.Vinobiya Madam", "v2025": { "fail": 8, "success": 0 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.K.Vajeer Basha sir", "v2025": { "fail": 3, "success": 0 }, "team": "Mr.Sankar Sir", "v2024": { "fail": 1, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.R.Shawn michael sir", "v2025": { "fail": 99, "success": 20 }, "team": "Mr.Sankar sir", "v2024": { "fail": 82, "success": 19 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.M.Yuvasri Madam", "v2025": { "fail": 12, "success": 1 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.Ranjith sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Ranjith sir", "v2024": { "fail": 23, "success": 2 }, "pos": "BOD" }, { "v2026": { "fail": 1, "success": 0 }, "staff": "Mr.R.Jeeva sir", "v2025": { "fail": 3, "success": 0 }, "team": "Mr.Ashok sir", "v2024": { "fail": 1, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 10, "success": 0 }, "staff": "Mrs.S.Sneka Madam", "v2025": { "fail": 94, "success": 22 }, "team": "Mr.Ranjith sir", "v2024": { "fail": 145, "success": 34 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.E.Siva Sir", "v2025": { "fail": 0, "success": 1 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 33, "success": 5 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.V.Nishanthi Madam", "v2025": { "fail": 2, "success": 0 }, "team": "Mr.Thangadurai Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 6, "success": 3 }, "staff": "Mr.A.Manikandan Sir", "v2025": { "fail": 116, "success": 18 }, "team": "Mr.Prabhakaran Sir", "v2024": { "fail": 111, "success": 20 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.P.Ezhil Rajan Sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Senthil Sir", "v2024": { "fail": 16, "success": 5 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.A.Ayyappan Sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Suriya Sir", "v2024": { "fail": 3, "success": 1 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.K.Kishore sir", "v2025": { "fail": 4, "success": 2 }, "team": "Mr.Ashok sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 4, "success": 0 }, "staff": "Mr.P.Santhana Krishnan sir", "v2025": { "fail": 83, "success": 16 }, "team": "Mr.Ashok sir", "v2024": { "fail": 69, "success": 23 }, "pos": "Marketing Staff" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.T.Prabakaran sir", "v2025": { "fail": 3, "success": 0 }, "team": "Mr.Senthil Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 2, "success": 1 }, "staff": "Ms.M.Jayasri Madam", "v2025": { "fail": 7, "success": 1 }, "team": "Mr.Ranjith Sir", "v2024": { "fail": 0, "success": 0 }, "pos": "Telecaller" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Ms.Y.Shobana Madam", "v2025": { "fail": 3, "success": 1 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mrs.K.Syamalavathi Madam", "v2025": { "fail": 2, "success": 0 }, "team": "Mr.Ayyappan Sir\u0026 Mrs.Latha Mam", "v2024": { "fail": 0, "success": 0 }, "pos": "OLD STAFF" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.J.Ayyappan sir", "v2025": { "fail": 0, "success": 0 }, "team": "Mr.Gopi Sir", "v2024": { "fail": 1, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 0, "success": 0 }, "staff": "Mr.M.Balamuthu sir", "v2025": { "fail": 1, "success": 0 }, "team": "Mr.Sankar sir", "v2024": { "fail": 2, "success": 0 }, "pos": "F.W" }, { "v2026": { "fail": 9, "success": 2 }, "staff": "Mr.Selvakumar Sir", "v2025": { "fail": 8, "success": 1 }, "team": "Mr.SelvaKumar Sir", "v2024": { "fail": 1, "success": 1 }, "pos": "BOD" }];
+        const performanceData = performanceDataFull;
+        ;
+
+        // Initialize Charts
+        let teamBarChart, statusPieChart, trendLineChart;
+
+        function initCharts() {
+            const barOptions = {
+                chart: { type: 'bar', height: 350, toolbar: { show: false }, background: 'transparent' },
+                theme: { mode: 'dark' },
+                series: [],
+                xaxis: { categories: [] },
+                colors: ['#10b981', '#f43f5e'],
+                plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } },
+                dataLabels: { enabled: false },
+                grid: { borderColor: 'rgba(255,255,255,0.05)' }
+            };
+            teamBarChart = new ApexCharts(document.querySelector("#team-bar-chart"), barOptions);
+            teamBarChart.render();
+
+            const pieOptions = {
+                chart: { type: 'donut', height: 350, background: 'transparent' },
+                theme: { mode: 'dark' },
+                series: [0, 0],
+                labels: ['Success', 'Unsuccess'],
+                colors: ['#10b981', '#f43f5e'],
+                legend: { position: 'bottom' },
+                stroke: { show: false },
+                dataLabels: { enabled: true, formatter: val => val.toFixed(1) + "%" }
+            };
+            statusPieChart = new ApexCharts(document.querySelector("#status-pie-chart"), pieOptions);
+            statusPieChart.render();
+
+            const lineOptions = {
+                chart: { type: 'area', height: 350, toolbar: { show: false }, background: 'transparent' },
+                theme: { mode: 'dark' },
+                series: [],
+                xaxis: { categories: ['2024', '2025', '2026'] },
+                colors: ['#6366f1'],
+                stroke: { curve: 'smooth', width: 3 },
+                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 } },
+                grid: { borderColor: 'rgba(255,255,255,0.05)' }
+            };
+            trendLineChart = new ApexCharts(document.querySelector("#trend-line-chart"), lineOptions);
+            trendLineChart.render();
+        }
+
+        function updateDashboard() {
+            const selectedTeam = document.getElementById('team-filter').value;
+            const selectedYear = document.getElementById('year-filter').value;
+            const selectedPos = document.getElementById('pos-filter').value;
+
+            filteredData = performanceData.filter(item => {
+                const teamMatch = selectedTeam === 'all' || (item.team && item.team.toLowerCase() === selectedTeam.toLowerCase());
+                const posMatch = selectedPos === 'all' || (item.pos && item.pos.toLowerCase() === selectedPos.toLowerCase());
+                return teamMatch && posMatch;
+            });
+
+            // Calculate Stats
+            let totalSuccess = 0;
+            let totalFail = 0;
+            let yearlyTrend = { '2024': 0, '2025': 0, '2026': 0 };
+
+            const teamStats = {};
+
+            filteredData.forEach(item => {
+                let s = 0, f = 0;
+                if (selectedYear === 'all' || selectedYear === '2024') {
+                    s += (item.v2024.success || 0); f += (item.v2024.fail || 0);
+                    yearlyTrend['2024'] += ((item.v2024.success || 0) + (item.v2024.fail || 0));
+                }
+                if (selectedYear === 'all' || selectedYear === '2025') {
+                    s += (item.v2025.success || 0); f += (item.v2025.fail || 0);
+                    yearlyTrend['2025'] += ((item.v2025.success || 0) + (item.v2025.fail || 0));
+                }
+                if (selectedYear === 'all' || selectedYear === '2026') {
+                    s += (item.v2026.success || 0); f += (item.v2026.fail || 0);
+                    yearlyTrend['2026'] += ((item.v2026.success || 0) + (item.v2026.fail || 0));
+                }
+
+                totalSuccess += s;
+                totalFail += f;
+
+                if (!teamStats[item.team]) teamStats[item.team] = { s: 0, f: 0 };
+                teamStats[item.team].s += s;
+                teamStats[item.team].f += f;
+            });
+
+            const totalVisits = totalSuccess + totalFail;
+            document.getElementById('stat-total-visits').innerText = totalVisits.toLocaleString();
+            document.getElementById('stat-success').innerText = totalSuccess.toLocaleString();
+            document.getElementById('stat-failed').innerText = totalFail.toLocaleString();
+            document.getElementById('stat-ratio').innerText = totalVisits > 0 ? ((totalSuccess / totalVisits) * 100).toFixed(1) + '%' : '0%';
+
+            statusPieChart.updateSeries([totalSuccess, totalFail]);
+
+            const teams = Object.keys(teamStats);
+            const teamSuccess = teams.map(t => teamStats[t].s);
+            const teamFail = teams.map(t => teamStats[t].f);
+
+            teamBarChart.updateOptions({
+                xaxis: { categories: teams },
+                series: [
+                    { name: 'Success', data: teamSuccess },
+                    { name: 'Unsuccess', data: teamFail }
+                ]
+            });
+
+            trendLineChart.updateSeries([
+                { name: 'Total Visits', data: [yearlyTrend['2024'], yearlyTrend['2025'], yearlyTrend['2026']] }
+            ]);
+
+            const tbody = document.getElementById('data-table-body');
+            tbody.innerHTML = '';
+            filteredData.slice(0, 50).forEach(item => {
+                let s = 0, f = 0;
+                if (selectedYear === 'all' || selectedYear === '2024') { s += (item.v2024.success || 0); f += (item.v2024.fail || 0); }
+                if (selectedYear === 'all' || selectedYear === '2025') { s += (item.v2025.success || 0); f += (item.v2025.fail || 0); }
+                if (selectedYear === 'all' || selectedYear === '2026') { s += (item.v2026.success || 0); f += (item.v2026.fail || 0); }
+
+                const total = s + f;
+                if (total === 0) return;
+
+                const ratio = ((s / total) * 100).toFixed(1) + '%';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.team}</td>
+                    <td><span class="badge badge-success">${s}</span></td>
+                    <td><span class="badge badge-fail">${f}</span></td>
+                    <td>${total}</td>
+                    <td>${ratio}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function populateFilters() {
+            // Populate Teams (assuming teams are fine, or should we filter BOD teams too?)
+            // Usually BOD are mixed in teams or have their own team.
+            // Let's just filter positions and staff for now as requested.
+            // Normalize team names to title case or consistent format to remove duplicates
+            const teams = [...new Set(performanceData.map(item => {
+                let t = item.team || "";
+                // Simple normalization: if it contains 'sir' or 'mam' with different casing, standardize it.
+                // Or just use the first occurrence as the canonical version? 
+                // Better: Title Case everything? No, names might be complex.
+                // Let's rely on case-insensitive set behavior by mapping to lower case for uniqueness check, 
+                // but we need a display version.
+                return t;
+            }))].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+            // Deduplicate ignoring case
+            const uniqueTeams = [];
+            const seenTeams = new Set();
+            teams.forEach(t => {
+                if (!seenTeams.has(t.toLowerCase())) {
+                    seenTeams.add(t.toLowerCase());
+                    uniqueTeams.push(t);
+                }
+            });
+
+            const teamFilter = document.getElementById('team-filter');
+            uniqueTeams.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t;
+                opt.innerText = t;
+                teamFilter.appendChild(opt);
+            });
+
+            const positionsRaw = [...new Set(performanceData.map(item => {
+                const p = item.pos || "";
+                // Standardize to Title Case or just maintain consistency
+                if (p.toLowerCase() === "marketing staff") return "Marketing Staff";
+                if (p.toLowerCase() === "telecaller") return "Telecaller";
+                if (p.toLowerCase() === "f.w") return "F.W";
+                return p;
+            }))].filter(p => {
+                if (!p) return false;
+                const up = p.toUpperCase();
+                return up !== 'BOD' && !up.includes('OLD STAFF');
+            }).sort();
+
+            const posFilter = document.getElementById('pos-filter');
+            positionsRaw.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.innerText = p;
+                posFilter.appendChild(opt);
+            });
+
+        }
+
+        document.getElementById('team-filter').onchange = updateDashboard;
+        document.getElementById('pos-filter').onchange = updateDashboard;
+        document.getElementById('year-filter').onchange = updateDashboard;
+
+        // Startup
+        window.onload = () => {
+            populateFilters();
+            initCharts();
+            updateDashboard();
+        };
+    </script>
+</body>
+
+</html>
