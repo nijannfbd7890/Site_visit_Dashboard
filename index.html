@@ -359,6 +359,7 @@
             <div id="trend-line-chart"></div>
         </div>
 
+        <!--
         <div class="table-container">
             <table>
                 <thead>
@@ -371,10 +372,11 @@
                     </tr>
                 </thead>
                 <tbody id="data-table-body">
-                    <!-- Data will be injected here -->
+                    
                 </tbody>
             </table>
         </div>
+        -->
     </div>
 
     <script>
@@ -492,6 +494,7 @@
                 { name: 'Total Visits', data: [yearlyTrend['2024'], yearlyTrend['2025'], yearlyTrend['2026']] }
             ]);
 
+            /*
             const tbody = document.getElementById('data-table-body');
             tbody.innerHTML = '';
             filteredData.slice(0, 50).forEach(item => {
@@ -515,6 +518,7 @@
                 `;
                 tbody.appendChild(tr);
             });
+            */
         }
 
         function populateFilters() {
